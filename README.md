@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Business Expo 2026 — Website (Next.js + Tailwind + Supabase)
 
-## Getting Started
+## Setup (Windows)
 
-First, run the development server:
+1. Install Node.js (LTS) from nodejs.org if you haven't already.
+2. Unzip this project, open the folder in VS Code / terminal.
+3. Run:
+   ```
+   npm install
+   ```
+4. Copy `.env.local.example` to `.env.local` and fill in your real Supabase Project URL + anon key
+   (Supabase dashboard → Project Settings → API).
+5. Run the SQL schema from `expo-website-guide.md` (PART 4) in your Supabase SQL Editor
+   to create the `visitors`, `exhibitor_inquiries`, `sponsor_inquiries`, `contact_messages` tables.
+6. Run:
+   ```
+   npm run dev
+   ```
+   Open http://localhost:3000
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What's included
+- Bilingual (English/Marathi) toggle — top right button
+- Hero with live countdown timer (edit the date in `src/components/Countdown.jsx`)
+- Animated stat counters
+- Expo sectors grid
+- Stall pricing cards
+- Working Exhibitor Inquiry form → saves to Supabase `exhibitor_inquiries` table
+- Working Visitor Registration form → saves to Supabase `visitors` table
+- Sponsorship tiers section
+- Gallery placeholder grid (replace with real images)
+- Working Contact form → saves to Supabase `contact_messages` table
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy
+Push this folder to a GitHub repo, then import it in vercel.com → add the same
+`.env.local` values as Environment Variables → Deploy. Free `.vercel.app` URL in ~2 minutes.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Next steps
+See PART 10 (Roadmap) in `expo-website-guide.md` for Phase 2+ features
+(admin dashboard, payments, QR check-in, WhatsApp/SMS).
