@@ -172,6 +172,18 @@ create table sponsors (
   display_order int default 0
 );
 
+-- Gallery (images uploaded via Cloudinary, URL stored here)
+create table gallery (
+  id uuid default gen_random_uuid() primary key,
+  image_url text not null,
+  caption text,
+  display_order int default 0,
+  created_at timestamp default now()
+);
+alter table gallery enable row level security;
+create policy "public read gallery" on gallery for select using (true);
+create policy "authenticated manage gallery" on gallery for all using (auth.role() = 'authenticated');
+
 -- Enable Row Level Security + allow public insert (for forms)
 alter table visitors enable row level security;
 alter table exhibitor_inquiries enable row level security;
@@ -395,6 +407,65 @@ git push -u origin main
 ```
 
 Fir Vercel.com par: "New Project" → apna GitHub repo select karo → Environment Variables mein `.env.local` wale dono values paste karo → Deploy. 2 minute mein live ho jayega, free `.vercel.app` domain milega. Baad mein custom domain (`.com`) GoDaddy/Hostinger se buy karke Vercel mein connect kar sakte ho.
+
+---
+
+## PART 8.5 — Admin Dashboard Setup (Login + Leads View)
+
+### 1. Admin user banao (Supabase dashboard mein)
+Supabase → left sidebar → **Authentication** → **Users** → "Add user" → apna email + password daalo (ye tumhara admin login hoga). "Auto Confirm User" ON rakhna taaki email verify na karna pade.
+
+### 2. SELECT policy add karo (SQL Editor mein run karo)
+Abhi tak forms ke liye sirf public INSERT allowed tha — admin ko data padhne (SELECT) ke liye ye chahiye:
+
+```sql
+create policy "authenticated read visitors" on visitors
+  for select using (auth.role() = 'authenticated');
+
+create policy "authenticated read exhibitor" on exhibitor_inquiries
+  for select using (auth.role() = 'authenticated');
+
+create policy "authenticated read contact" on contact_messages
+  for select using (auth.role() = 'authenticated');
+
+-- Admin ko exhibitor status update karne ki permission
+create policy "authenticated update exhibitor" on exhibitor_inquiries
+  for update using (auth.role() = 'authenticated');
+```
+
+### 3. Kaise use karo
+- Live site par `/admin/login` par jao (e.g. `expo-website-yourname.vercel.app/admin/login`)
+- Step 1 mein banaya email/password se login karo
+- `/admin/dashboard` par redirect hoga — Visitors / Exhibitor Inquiries / Contact Messages teeno tabs mein data dikhega
+- Exhibitor Inquiries tab mein har row ke saamne status dropdown hai (New/Contacted/Confirmed) — badalte hi turant DB update ho jata hai
+
+**Important:** `/admin` route abhi sirf client-side check karta hai (login nahi to redirect). Agar zyada log admin access karte ho ya security aur strict chahiye, Phase 2 mein Next.js **middleware** se server-side protection add kar sakte hain — abhi ke liye ye kaafi hai kyunki data khud RLS se protected hai (bina login ke SELECT hoga hi nahi, chahe koi URL directly khole).
+
+---
+
+## PART 8.6 — Gallery Setup (Cloudinary + Admin Upload)
+
+### 1. Cloudinary free account banao
+- https://cloudinary.com → sign up free (25GB free storage+bandwidth)
+- Dashboard par apna **Cloud Name** copy kar lo (top par dikhta hai)
+
+### 2. Unsigned Upload Preset banao (taaki browser se seedha upload ho sake, backend/server ki zarurat nahi)
+- Cloudinary dashboard → Settings (gear icon) → **Upload** tab → "Add upload preset"
+- **Signing Mode = Unsigned** rakho
+- Naam do jaise `expo_gallery` → Save
+- Ye preset naam aur cloud name `.env.local` mein daalna hai
+
+### 3. `.env.local` mein add karo
+```
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=expo_gallery
+```
+
+### 4. `gallery` table already PART 4 ke SQL mein add ho gayi hai (upar dekho) — RLS aisi hai ki **sab dekh sakte hain** (public read) lekin sirf **logged-in admin upload/edit/delete** kar sakta hai.
+
+### 5. Kaise use hoga
+- Admin `/admin/gallery` page par jaake login ke baad photo select karega → seedha Cloudinary par upload hoga → uska URL Supabase `gallery` table mein save ho jayega
+- Homepage ka Gallery section ab static placeholder ki jagah is table se live images dikhayega, click karne par lightbox mein bada dekh sakte ho
 
 ---
 

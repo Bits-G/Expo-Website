@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import LangSwitcher from '@/components/LangSwitcher'
@@ -36,6 +36,16 @@ export default function Home() {
   const [contact, setContact] = useState({ name: '', mobile: '', email: '', message: '' })
   const [contactDone, setContactDone] = useState(false)
 
+  // Gallery
+  const [gallery, setGallery] = useState([])
+  const [lightbox, setLightbox] = useState(null)
+
+  useEffect(() => {
+    supabase.from('gallery').select('*').order('display_order', { ascending: true })
+      .then(({ data }) => setGallery(data || []))
+  }, [])
+
+
   const submitVisitor = async (e) => {
     e.preventDefault()
     const { error } = await supabase.from('visitors').insert([visitor])
@@ -57,7 +67,7 @@ export default function Home() {
   return (
     <main>
       {/* NAVBAR */}
-      <nav className="flex justify-between items-center px-6 md:px-12 py-4 bg-secondary text-white sticky top-0 z-50">
+      <nav className="flex justify-between items-center px-6 md:pl-12 md:pr-8 py-4 bg-secondary text-white sticky top-0 z-50">
         <span className="font-heading font-bold text-lg md:text-xl">Business Expo 2026</span>
         <div className="hidden md:flex gap-6 items-center text-sm">
           <a href="#about">{t('nav_about')}</a>
@@ -66,7 +76,15 @@ export default function Home() {
           <a href="#sponsors">{t('sponsors_title')}</a>
           <a href="#contact">{t('nav_contact')}</a>
         </div>
-        <LangSwitcher />
+        <div className="flex items-center gap-2">
+          <LangSwitcher />
+          <a
+            href="/admin/login"
+            className="px-4 py-2 bg-white/10 border border-white/30 text-white rounded-full font-semibold text-sm hover:bg-white/20 transition"
+          >
+            Admin
+          </a>
+        </div>
       </nav>
 
       {/* HERO */}
@@ -201,17 +219,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* GALLERY placeholder */}
+      {/* GALLERY */}
       <section className="py-16 px-4 max-w-6xl mx-auto">
         <h2 className="text-3xl font-heading font-bold text-secondary mb-8 text-center">{t('gallery_title')}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <div key={i} className="bg-gray-200 rounded-xl aspect-square flex items-center justify-center text-gray-400 text-sm">
-              Image {i}
-            </div>
-          ))}
+          {gallery.length === 0 ? (
+            <p className="col-span-full text-center text-gray-400">Photos coming soon.</p>
+          ) : (
+            gallery.map(img => (
+              <button
+                key={img.id}
+                onClick={() => setLightbox(img.image_url)}
+                className="bg-gray-100 rounded-xl aspect-square overflow-hidden"
+              >
+                <img src={img.image_url} alt={img.caption || ''} className="w-full h-full object-cover hover:scale-105 transition" />
+              </button>
+            ))
+          )}
         </div>
       </section>
+
+      {/* LIGHTBOX */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <img src={lightbox} alt="" className="max-h-[90vh] max-w-full rounded-lg" />
+        </div>
+      )}
 
       {/* CONTACT */}
       <section id="contact" className="bg-secondary text-white py-16 px-4">
